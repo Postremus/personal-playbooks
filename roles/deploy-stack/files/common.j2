@@ -1,0 +1,27 @@
+version: '3.4'
+services:
+  {{ service.name }}:
+    image: "{{ service.image }}:{{ service.tag }}"
+    networks:
+      - traefik
+{% if service.volumes is defined %}
+    volumes:
+{% for volume in service.volumes %}
+        - "{{ volume }}"
+{% endfor %}
+{% endif %}
+    deploy:
+      replicas: {{ service.replicas | default(2) }}
+      placement:
+        constraints:
+          - "{{ service.constraint | default('node.role == worker') }}"
+{% if service.labels is defined %}
+      labels:
+{% for label in service.labels %}
+        - "{{ label }}"
+{% endfor %}
+{% endif %}
+
+networks:
+  traefik:
+    driver: overlay

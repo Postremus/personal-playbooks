@@ -1,0 +1,6 @@
+---
+[docker-swarm-manager]
+postremus.de
+
+[common:children]
+docker-swarm-manager

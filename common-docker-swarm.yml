@@ -1,0 +1,8 @@
+---
+- hosts: common
+  user: root
+  roles:
+    - { role: docker, tags: ["docker"] }
+    - { role: deploy-stack, vars: {service: "{{ service_definitions.traefik }}"}, tags: ["deploy", "traefik"] }
+    - { role: deploy-stack, vars: {service: "{{ service_definitions.visualizer }}"}, tags: ["deploy", "visualizer"] }
+    - { role: deploy-stack, vars: {service: "{{ service_definitions.httpd }}"}, tags: ["deploy", "httpd"] }

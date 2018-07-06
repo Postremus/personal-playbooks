@@ -1,0 +1,52 @@
+---
+versions:
+  traefik: "v1.6.4"
+  visualizer: "stable"
+  apache: "2.4-alpine"
+
+stack:
+  name: "common"
+
+service_definitions:
+  traefik:
+    name: traefik
+    template_name: "traefik/traefik"
+    tag: "{{ versions.traefik }}"
+    files:
+      - name: "traefik/acme.json"
+        overwrite: false
+        mode: "0600"
+  visualizer:
+    name: visualizer
+    image: dockersamples/visualizer
+    tag: "{{ versions.visualizer }}"
+    constraint: "node.role == manager"
+    replicas: 1
+    volumes:
+     - "/var/run/docker.sock:/var/run/docker.sock"
+    labels:
+     - "traefik.port=8080"
+     - "traefik.backend=visualizer"
+     - "traefik.frontend.rule=Host:visualizer.postremus.de"
+     - "traefik.docker.network={{ stack.name }}_traefik"
+     - "traefik.frontend.headers.STSSeconds=315360000"
+     - "traefik.frontend.headers.STSPreload=true"
+  httpd:
+    name: httpd
+    image: httpd
+    template_name: "common"
+    tag: "{{ versions.apache }}"
+    constraint: "node.role == manager"
+    files:
+      - name: "httpd/httpd.conf"
+        overwrite: true
+        mode:
+    volumes:
+     - "{{ docker_service_dir }}/httpd/httpd.conf:/usr/local/apache2/conf/httpd.conf"
+    labels:
+     - "traefik.port=8080"
+     - "traefik.backend=httpd"
+     - "traefik.frontend.rule=Host:martinpanzer.de,www.martinpanzer.de,postremus.de,www.postremus.de"
+     - "traefik.docker.network={{ stack.name }}_traefik"
+     - "traefik.frontend.headers.STSSeconds=315360000"
+     - "traefik.frontend.headers.STSPreload=true"
