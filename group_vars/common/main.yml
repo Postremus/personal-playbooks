@@ -1,11 +1,16 @@
 ---
 versions:
-  traefik: "v1.6.4"
+  traefik: "v1.7.3"
   visualizer: "stable"
   apache: "2.4-alpine"
 
 stack:
   name: "common"
+
+env: "prod"
+docker_node_labels:
+- name: "environment"
+  value: "{{ env }}"
 
 service_definitions:
   traefik:
