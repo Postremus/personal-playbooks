@@ -4,21 +4,39 @@ services:
     image: "{{ service.image }}:{{ service.tag }}"
     networks:
       - traefik
-{% if service.volumes is defined %}
+{% if service.volumes is defined%}
     volumes:
 {% for volume in service.volumes %}
-        - "{{ volume }}"
+        - type: {{ volume.type }}
+          source: {{ volume.source }}
+          target: {{ volume.target }}
 {% endfor %}
 {% endif %}
     deploy:
       replicas: {{ service.replicas | default(2) }}
       placement:
         constraints:
-          - "{{ service.constraint | default('node.role == worker') }}"
-{% if service.labels is defined %}
+{% if service.constraints is defined %}
+{% for constraint in service.constraints %}
+          - "{{ constraint }}"
+{% endfor %}
+{% else %}
+          - node.role == worker
+{% endif %}
       labels:
+{% if 'secure' in service.features %}
+        - traefik.frontend.headers.STSSeconds=315360000
+        - traefik.frontend.headers.STSPreload=true
+{% endif %}
 {% for label in service.labels %}
         - "{{ label }}"
+{% endfor %}
+
+{% if service.named_volumes is defined %}
+volumes:
+{% for volume in service.named_volumes %}
+  {{ volume.name }}:
+    driver: {{ volume.driver }}
 {% endfor %}
 {% endif %}
 

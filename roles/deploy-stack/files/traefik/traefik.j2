@@ -8,9 +8,10 @@ services:
       - 443:443
     networks:
       - traefik
+      - common_mail_traefik
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /opt/docker/services/traefik/acme.json:/acme.json
+      - /opt/docker/services/common_prod/traefik/acme.json:/acme.json
       - "{{ htpasswd_locations.monitoring }}:{{ htpasswd_locations.monitoring }}"
     command:
       - "--api"
@@ -20,7 +21,7 @@ services:
       - "--docker"
       - "--docker.swarmmode"
       - "--debug"
-      - "--loglevel=error"
+      - "--loglevel=debug"
       - "--acme"
       - "--acme.email=postremus1996@googlemail.com"
       - "--acme.storage=/acme.json"
@@ -35,7 +36,7 @@ services:
       DO_AUTH_TOKEN: /run/secrets/DO_AUTH_TOKEN
     deploy:
       labels:
-        - "traefik.docker.network={{ stack.name }}_traefik"
+        - "traefik.docker.network={{ service.stack }}_traefik"
         - "traefik.frontend.rule=Host:monitor.postremus.de"
         - "traefik.frontend.auth.basic.usersFile={{ htpasswd_locations.monitoring }}"
         - "traefik.backend=traefik-dashboard"
@@ -51,3 +52,6 @@ secrets:
 networks:
   traefik:
     driver: overlay
+  common_mail_traefik:
+    external:
+      name: common_mail_traefik

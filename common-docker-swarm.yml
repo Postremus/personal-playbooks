@@ -3,6 +3,11 @@
   user: root
   roles:
     - { role: docker, tags: ["docker"] }
-    - { role: deploy-stack, vars: {service: "{{ service_definitions.traefik }}"}, tags: ["deploy", "traefik"] }
-    - { role: deploy-stack, vars: {service: "{{ service_definitions.visualizer }}"}, tags: ["deploy", "visualizer"] }
-    - { role: deploy-stack, vars: {service: "{{ service_definitions.httpd }}"}, tags: ["deploy", "httpd"] }
+
+- hosts: docker-swarm-manager
+  user: root
+  roles:
+  - { role: deploy-stack, vars: {service: "{{ service_definitions.visualizer }}"}, tags: ["deploy", "visualizer"], when: "'visualizer' in deployments" }
+  - { role: deploy-stack, vars: {service: "{{ service_definitions.httpd }}"}, tags: ["deploy", "httpd"], when: "'httpd' in deployments" }
+  - { role: deploy-stack, vars: {service: "{{ service_definitions.mailu }}"}, tags: ["deploy", "mailu"], when: "'mailu' in deployments" }
+  - { role: deploy-stack, vars: {service: "{{ service_definitions.traefik }}"}, tags: ["deploy", "traefik"], when: "'traefik' in deployments" }

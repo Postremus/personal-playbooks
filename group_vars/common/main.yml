@@ -4,17 +4,10 @@ versions:
   visualizer: "stable"
   apache: "2.4-alpine"
 
-stack:
-  name: "common"
-
-env: "prod"
-docker_node_labels:
-- name: "environment"
-  value: "{{ env }}"
-
 service_definitions:
   traefik:
     name: traefik
+    stack: "{{ stack.common_prod }}"
     template_name: "traefik/traefik"
     tag: "{{ versions.traefik }}"
     files:
@@ -23,35 +16,47 @@ service_definitions:
         mode: "0600"
   visualizer:
     name: visualizer
+    stack: "{{ stack.common_prod }}"
     image: dockersamples/visualizer
     tag: "{{ versions.visualizer }}"
-    constraint: "node.role == manager"
+    constraints:
+     - "node.role == manager"
+     - "node.labels.environment == prod"
     replicas: 1
     volumes:
-     - "/var/run/docker.sock:/var/run/docker.sock"
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+    features:
+      - "secure"
     labels:
-     - "traefik.port=8080"
-     - "traefik.backend=visualizer"
-     - "traefik.frontend.rule=Host:visualizer.postremus.de"
-     - "traefik.docker.network={{ stack.name }}_traefik"
-     - "traefik.frontend.headers.STSSeconds=315360000"
-     - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.port=8080"
+      - "traefik.backend=visualizer"
+      - "traefik.frontend.rule={{ frontend_rules.visualizer }}"
+      - "traefik.docker.network={{ traefik_network }}"
+      - "traefik.frontend.auth.basic.usersFile={{ htpasswd_locations.monitoring }}"
   httpd:
     name: httpd
+    stack: "{{ stack.common_prod }}"
     image: httpd
     template_name: "common"
     tag: "{{ versions.apache }}"
-    constraint: "node.role == manager"
+    replicas: 1
+    constraints:
+      - "node.role == manager"
+      - "node.labels.environment == prod"
     files:
       - name: "httpd/httpd.conf"
         overwrite: true
         mode:
     volumes:
-     - "{{ docker_service_dir }}/httpd/httpd.conf:/usr/local/apache2/conf/httpd.conf"
+     - type: bind
+       source: "{{ docker_service_dir }}/common_prod/httpd/httpd.conf"
+       target: /usr/local/apache2/conf/httpd.conf
+    features:
+      - "secure"
     labels:
-     - "traefik.port=8080"
-     - "traefik.backend=httpd"
-     - "traefik.frontend.rule=Host:martinpanzer.de,www.martinpanzer.de,postremus.de,www.postremus.de"
-     - "traefik.docker.network={{ stack.name }}_traefik"
-     - "traefik.frontend.headers.STSSeconds=315360000"
-     - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.port=8080"
+      - "traefik.backend=httpd"
+      - "traefik.frontend.rule={{ frontend_rules.httpd }}"
+      - "traefik.docker.network={{ traefik_network }}"

@@ -1,0 +1,15 @@
+---
+stack:
+  mail: "common_mail"
+
+traefik_network: "common_prod_traefik"
+
+service_definitions:
+  mailu:
+    name: mailu
+    stack: "{{ stack.mail }}"
+    template_name: "mailu/mailu"
+    files:
+    - name: "mailu/.env"
+      overwrite: true
+      mode: "0600"
