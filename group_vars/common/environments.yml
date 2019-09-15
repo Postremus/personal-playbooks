@@ -1,0 +1,18 @@
+---
+environments:
+  prod:
+    name: prod
+    stack: common_prod
+    traefik_network: common_prod_traefik
+    group: common-prod
+    versions:
+      web: latest
+      visualizer: "stable"
+      traefik: "v1.7"
+    replicas:
+      visualizer: 1
+      traefik: 1
+    frontend_rules:
+      web: "Host:martinpanzer.de,www.martinpanzer.de,postremus.de,www.postremus.de"
+      visualizer: "Host:visualizer.postremus.de"
+      traefik: "Host:monitor.postremus.de"

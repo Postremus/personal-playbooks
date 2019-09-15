@@ -1,21 +1,21 @@
 ---
+docker_node_labels:
+  - name: "environment"
+    value: "prod"
+  - name: "purpose"
+    value: "stateless"
+
 stack:
   common_prod: "common_prod"
 
 traefik_network: "common_prod_traefik"
 
-docker_node_labels:
-  - name: "environment"
-    value: "prod"
-
 deployments:
   - httpd
   - visualizer
   - traefik
-  - mailu
 
 frontend_rules:
   visualizer: "Host:visualizer.postremus.de"
   traefik: "Host:monitor.postremus.de"
   httpd: "Host:martinpanzer.de,www.martinpanzer.de,postremus.de,www.postremus.de"
-  mailu: "Host:mail.martinpanzer.de"

@@ -1,4 +1,3 @@
----
 [docker-swarm-manager:children]
 docker-swarm-manager-prod
 

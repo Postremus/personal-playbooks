@@ -1,62 +1,45 @@
 ---
-versions:
-  traefik: "v1.7.3"
-  visualizer: "stable"
-  apache: "2.4-alpine"
 
 service_definitions:
   traefik:
     name: traefik
-    stack: "{{ stack.common_prod }}"
     template_name: "traefik/traefik"
-    tag: "{{ versions.traefik }}"
+    environments:
+      - "{{ environments.prod }}"
     files:
       - name: "traefik/acme.json"
         overwrite: false
         mode: "0600"
+    networks:
+      - name: "common_dev_traefik"
+        driver: "overlay"
+      - name: "common_prod_traefik"
+        driver: "overlay"
   visualizer:
     name: visualizer
-    stack: "{{ stack.common_prod }}"
     image: dockersamples/visualizer
-    tag: "{{ versions.visualizer }}"
+    internal_port: 8080
+    environments:
+      - "{{ environments.prod }}"
     constraints:
-     - "node.role == manager"
-     - "node.labels.environment == prod"
-    replicas: 1
+      - "node.role == manager"
     volumes:
       - type: bind
         source: /var/run/docker.sock
         target: /var/run/docker.sock
     features:
       - "secure"
-    labels:
-      - "traefik.port=8080"
-      - "traefik.backend=visualizer"
-      - "traefik.frontend.rule={{ frontend_rules.visualizer }}"
-      - "traefik.docker.network={{ traefik_network }}"
-      - "traefik.frontend.auth.basic.usersFile={{ htpasswd_locations.monitoring }}"
-  httpd:
-    name: httpd
-    stack: "{{ stack.common_prod }}"
+  web:
+    name: web
     image: httpd
-    template_name: "common"
-    tag: "{{ versions.apache }}"
-    replicas: 1
+    internal_port: 8080
+    environments:
+      - "{{ environments.prod }}"
     constraints:
       - "node.role == manager"
       - "node.labels.environment == prod"
-    files:
-      - name: "httpd/httpd.conf"
-        overwrite: true
-        mode:
-    volumes:
-     - type: bind
-       source: "{{ docker_service_dir }}/common_prod/httpd/httpd.conf"
-       target: /usr/local/apache2/conf/httpd.conf
     features:
       - "secure"
     labels:
-      - "traefik.port=8080"
-      - "traefik.backend=httpd"
-      - "traefik.frontend.rule={{ frontend_rules.httpd }}"
-      - "traefik.docker.network={{ traefik_network }}"
+      - "traefik.frontend.redirect.regex=^.*"
+      - "traefik.frontend.redirect.replacement=https://linkedin.com/in/martinpanzer/"
