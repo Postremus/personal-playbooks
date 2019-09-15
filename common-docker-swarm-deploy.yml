@@ -1,0 +1,7 @@
+---
+- hosts: docker-swarm-manager
+  user: root
+  roles:
+  - { role: deploy-stack, vars: {service: "{{ service_definitions.traefik }}"}, tags: ["deploy", "traefik"] }
+  - { role: deploy-stack, vars: {service: "{{ service_definitions.visualizer }}"}, tags: ["deploy", "visualizer"] }
+  - { role: deploy-stack, vars: {service: "{{ service_definitions.web }}"}, tags: ["deploy", "web"] }
