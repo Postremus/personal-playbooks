@@ -1,4 +1,0 @@
----
-docker_node_labels:
-- name: "purpose"
-  value: "mail"
